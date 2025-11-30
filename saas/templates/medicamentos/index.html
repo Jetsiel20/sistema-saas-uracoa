@@ -1,0 +1,163 @@
+
+{% extends "base.html" %}
+{% import '_macros.html' as macros %}
+
+{% block title %}Inventario de Medicamentos{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-capsule me-2"></i>Inventario de Medicamentos</h2>
+            <p class="text-muted mb-0">Control de disponibilidad institucional</p>
+        </div>
+        <a href="{{ url_for('medicamentos.crear') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Agregar Medicamento
+        </a>
+    </div>
+
+    <!-- Badges de estado -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-box-seam fs-1 text-primary me-3"></i>
+                        <div>
+                            <h5 class="mb-0">{{ total }}</h5>
+                            <small class="text-muted">Total en Inventario</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle fs-1 text-warning me-3"></i>
+                        <div>
+                            <h5 class="mb-0">{{ bajo_stock }}</h5>
+                            <small class="text-muted">Bajo Stock</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-calendar-x fs-1 text-danger me-3"></i>
+                        <div>
+                            <h5 class="mb-0">{{ vencidos }}</h5>
+                            <small class="text-muted">Vencidos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="buscar" class="form-control" 
+                           placeholder="Buscar medicamento..." value="{{ buscar }}">
+                </div>
+                <div class="col-md-4">
+                    <select name="filtro" class="form-select">
+                        <option value="todos" {% if filtro == 'todos' %}selected{% endif %}>Todos</option>
+                        <option value="bajo_stock" {% if filtro == 'bajo_stock' %}selected{% endif %}>Bajo Stock</option>
+                        <option value="vencido" {% if filtro == 'vencido' %}selected{% endif %}>Vencidos</option>
+                        <option value="por_vencer" {% if filtro == 'por_vencer' %}selected{% endif %}>Por Vencer (30 días)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="bi bi-search me-1"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de medicamentos -->
+    {% if medicamentos.items %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Presentación</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Vencimiento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for med in medicamentos.items %}
+                        <tr>
+                            <td>
+                                <strong>{{ med.nombre }}</strong>
+                                {% if med.nombre_generico %}
+                                <br><small class="text-muted">{{ med.nombre_generico }}</small>
+                                {% endif %}
+                                {% if med.concentracion %}
+                                <br><small class="text-muted">{{ med.concentracion }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if med.presentacion %}
+                                <span class="badge bg-secondary">{{ med.presentacion|capitalize }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ med.cantidad_stock }}</strong> {{ med.unidad_medida }}
+                                {% if med.stock_bajo %}
+                                <br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> Mínimo: {{ med.stock_minimo }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ macros.badge_estado_medicamento(med.estado_vencimiento, med.stock_bajo) }}
+                            </td>
+                            <td>
+                                {% if med.fecha_vencimiento %}
+                                {{ med.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('medicamentos.detalle', id=med.id) }}" 
+                                   class="btn btn-sm btn-info" title="Ver detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('medicamentos.editar', id=med.id) }}" 
+                                   class="btn btn-sm btn-warning" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {{ macros.render_pagination(medicamentos, 'medicamentos.index', {'filtro': filtro, 'buscar': buscar}) }}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        No hay medicamentos registrados en el inventario.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

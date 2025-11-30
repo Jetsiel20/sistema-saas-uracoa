@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Especialidades Médicas{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4"><i class="bi bi-stethoscope"></i> Especialidades Médicas</h2>
+    <a href="{{ url_for('especialidades.crear') }}" class="btn btn-primary mb-3">
+        <i class="bi bi-plus-circle"></i> Nueva Especialidad
+    </a>
+
+    {% if especialidades %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Médico</th>
+                    <th>Especialidad</th>
+                    <th>Teléfono</th>
+                    <th>Turno</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in especialidades %}
+                <tr class="{% if not e.activo %}table-secondary{% endif %}">
+                    <td><strong>{{ e.nombre_medico }}</strong></td>
+                    <td>{{ e.especialidad }}</td>
+                    <td>{{ e.telefono_contacto }}</td>
+                    <td>
+                        {% if e.turno == 'Mañana' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-sun"></i> {{ e.turno }}</span>
+                        {% elif e.turno == 'Tarde' %}
+                            <span class="badge bg-info"><i class="bi bi-cloud-sun"></i> {{ e.turno }}</span>
+                        {% else %}
+                            <span class="badge bg-dark"><i class="bi bi-moon"></i> {{ e.turno }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if e.activo %}
+                            <span class="badge bg-success">Activo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('especialidades.editar', id=e.id) }}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('especialidades.eliminar', id=e.id) }}" style="display:inline-block;">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar especialidad?');">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No hay especialidades registradas.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

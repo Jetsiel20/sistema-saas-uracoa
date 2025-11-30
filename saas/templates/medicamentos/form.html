@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-capsule me-2"></i>{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.nombre.label }}</label>
+                                {{ form.nombre(class="form-control" + (" is-invalid" if form.nombre.errors else "")) }}
+                                {% if form.nombre.errors %}
+                                <div class="invalid-feedback">{{ form.nombre.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.nombre_generico.label }}</label>
+                                {{ form.nombre_generico(class="form-control") }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.presentacion.label }}</label>
+                                {{ form.presentacion(class="form-select") }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.concentracion.label }}</label>
+                                {{ form.concentracion(class="form-control") }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-3">Registro y Fabricante</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.codigo_barras.label }}</label>
+                                {{ form.codigo_barras(class="form-control") }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.registro_sanitario.label }}</label>
+                                {{ form.registro_sanitario(class="form-control") }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.laboratorio.label }}</label>
+                            {{ form.laboratorio(class="form-control") }}
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-3">Inventario</h5>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.cantidad_stock.label }}</label>
+                                {{ form.cantidad_stock(class="form-control" + (" is-invalid" if form.cantidad_stock.errors else "")) }}
+                                {% if form.cantidad_stock.errors %}
+                                <div class="invalid-feedback">{{ form.cantidad_stock.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.unidad_medida.label }}</label>
+                                {{ form.unidad_medida(class="form-select") }}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.stock_minimo.label }}</label>
+                                {{ form.stock_minimo(class="form-control") }}
+                                <small class="text-muted">Se alertará cuando el stock baje de este valor</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.fecha_vencimiento.label }}</label>
+                                {{ form.fecha_vencimiento(class="form-control", type="date") }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.requiere_receta.label }}</label>
+                                {{ form.requiere_receta(class="form-select") }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.observaciones.label }}</label>
+                            {{ form.observaciones(class="form-control") }}
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('medicamentos.index') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

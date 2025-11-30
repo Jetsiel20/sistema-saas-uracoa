@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Internación {{ internado.codigo_internacion }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between mb-4">
+        <div><h2>Internación {{ internado.codigo_internacion }}</h2></div>
+        <div>
+            <a href="{{ url_for('internados.editar', id=internado.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> Editar</a>
+            <button onclick="window.print()" class="btn btn-outline-secondary"><i class="bi bi-printer"></i> Imprimir</button>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white"><h5>Paciente</h5></div>
+                <div class="card-body">
+                    <p><strong>Nombre:</strong> {{ internado.paciente.nombre_completo }}</p>
+                    <p><strong>Cédula:</strong> {{ internado.paciente.cedula }}</p>
+                    <p><strong>Edad:</strong> {{ internado.paciente.edad }} años</p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white"><h5>Ubicación</h5></div>
+                <div class="card-body">
+                    <p><strong>Sala:</strong> {{ internado.sala or 'N/A' }}</p>
+                    <p><strong>Cama:</strong> {{ internado.cama or 'N/A' }}</p>
+                    <p><strong>Médico:</strong> {{ internado.medico.nombre_completo }}</p>
+                    <p><strong>Días:</strong> {{ internado.dias_internado }} días</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header"><h5>Motivo y Diagnóstico</h5></div>
+                <div class="card-body">
+                    <p><strong>Motivo:</strong> {{ internado.motivo_internacion }}</p>
+                    <p><strong>Diagnóstico:</strong> {{ internado.diagnostico_ingreso }}</p>
+                    <p><strong>Fecha Ingreso:</strong> {{ internado.fecha_ingreso.strftime('%d/%m/%Y %H:%M') }}</p>
+                    {% if internado.fecha_alta %}<p><strong>Fecha Alta:</strong> {{ internado.fecha_alta.strftime('%d/%m/%Y %H:%M') }}</p>{% endif %}
+                </div>
+            </div>
+            {% if internado.evolucion_actual or internado.tratamiento_actual %}
+            <div class="card mb-3">
+                <div class="card-header"><h5>Evolución y Tratamiento</h5></div>
+                <div class="card-body">
+                    {% if internado.evolucion_actual %}<p><strong>Evolución:</strong> {{ internado.evolucion_actual }}</p>{% endif %}
+                    {% if internado.tratamiento_actual %}<p><strong>Tratamiento:</strong> {{ internado.tratamiento_actual }}</p>{% endif %}
+                    {% if internado.observaciones %}<p><strong>Observaciones:</strong> {{ internado.observaciones }}</p>{% endif %}
+                </div>
+            </div>
+            {% endif %}
+            <div class="card">
+                <div class="card-header"><h5>Estado</h5></div>
+                <div class="card-body">
+                    <p><strong>Estado:</strong> <span class="badge bg-{% if internado.estado == 'activo' %}success{% else %}secondary{% endif %}">{{ internado.estado.title() }}</span></p>
+                    {% if internado.tipo_alta %}<p><strong>Tipo Alta:</strong> {{ internado.tipo_alta.title() }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

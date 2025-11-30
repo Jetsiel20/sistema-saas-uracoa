@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle Medicamento{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="bi bi-capsule me-2"></i>{{ medicamento.nombre }}</h4>
+                    <div>
+                        <a href="{{ url_for('medicamentos.editar', id=medicamento.id) }}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil me-1"></i>Editar
+                        </a>
+                        <a href="{{ url_for('medicamentos.index') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Estado visual -->
+                    <div class="alert {% if medicamento.estado_vencimiento == 'vencido' %}alert-danger{% elif medicamento.estado_vencimiento == 'por_vencer' or medicamento.stock_bajo %}alert-warning{% else %}alert-success{% endif %} mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle fs-3 me-3"></i>
+                            <div>
+                                {% if medicamento.estado_vencimiento == 'vencido' %}
+                                <strong>⚠️ Medicamento Vencido</strong>
+                                <p class="mb-0">Este medicamento venció el {{ medicamento.fecha_vencimiento.strftime('%d/%m/%Y') }}</p>
+                                {% elif medicamento.estado_vencimiento == 'por_vencer' %}
+                                <strong>⚠️ Próximo a Vencer</strong>
+                                <p class="mb-0">Vence el {{ medicamento.fecha_vencimiento.strftime('%d/%m/%Y') }}</p>
+                                {% elif medicamento.stock_bajo %}
+                                <strong>⚠️ Stock Bajo</strong>
+                                <p class="mb-0">Cantidad: {{ medicamento.cantidad_stock }} (Mínimo: {{ medicamento.stock_minimo }})</p>
+                                {% else %}
+                                <strong>✅ Medicamento Disponible</strong>
+                                <p class="mb-0">Stock suficiente y vigente</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del medicamento -->
+                    <h5 class="border-bottom pb-2 mb-3">Información General</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Nombre Comercial:</strong> {{ medicamento.nombre }}</p>
+                            {% if medicamento.nombre_generico %}
+                            <p><strong>Nombre Genérico:</strong> {{ medicamento.nombre_generico }}</p>
+                            {% endif %}
+                            {% if medicamento.presentacion %}
+                            <p><strong>Presentación:</strong> {{ medicamento.presentacion|capitalize }}</p>
+                            {% endif %}
+                            {% if medicamento.concentracion %}
+                            <p><strong>Concentración:</strong> {{ medicamento.concentracion }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if medicamento.codigo_barras %}
+                            <p><strong>Código de Barras:</strong> {{ medicamento.codigo_barras }}</p>
+                            {% endif %}
+                            {% if medicamento.registro_sanitario %}
+                            <p><strong>Registro Sanitario:</strong> {{ medicamento.registro_sanitario }}</p>
+                            {% endif %}
+                            {% if medicamento.laboratorio %}
+                            <p><strong>Laboratorio:</strong> {{ medicamento.laboratorio }}</p>
+                            {% endif %}
+                            <p><strong>Requiere Receta:</strong> {{ 'Sí' if medicamento.requiere_receta else 'No' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Inventario -->
+                    <h5 class="border-bottom pb-2 mb-3">Inventario</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-box-seam fs-1 text-primary"></i>
+                                    <h3 class="mt-2">{{ medicamento.cantidad_stock }}</h3>
+                                    <p class="mb-0">{{ medicamento.unidad_medida|capitalize }} disponibles</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+                                    <h3 class="mt-2">{{ medicamento.stock_minimo }}</h3>
+                                    <p class="mb-0">Stock mínimo</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-calendar-event fs-1 {% if medicamento.estado_vencimiento == 'vencido' %}text-danger{% elif medicamento.estado_vencimiento == 'por_vencer' %}text-warning{% else %}text-success{% endif %}"></i>
+                                    <h3 class="mt-2">
+                                        {% if medicamento.fecha_vencimiento %}
+                                        {{ medicamento.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </h3>
+                                    <p class="mb-0">Fecha de vencimiento</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Control y observaciones -->
+                    {% if medicamento.responsable or medicamento.observaciones %}
+                    <h5 class="border-bottom pb-2 mb-3">Control Institucional</h5>
+                    <div class="mb-4">
+                        {% if medicamento.responsable %}
+                        <p><strong>Responsable:</strong> {{ medicamento.responsable.nombre_completo }}</p>
+                        {% endif %}
+                        {% if medicamento.observaciones %}
+                        <p><strong>Observaciones:</strong></p>
+                        <div class="alert alert-secondary">{{ medicamento.observaciones }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Fechas del sistema -->
+                    <div class="text-muted small">
+                        <p class="mb-1"><strong>Registrado:</strong> {{ medicamento.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- Header -->
+            <div class="mb-4">
+                <h2><i class="bi bi-file-medical-fill text-primary"></i> {{ titulo }}</h2>
+            </div>
+
+            <!-- Alerta del Sistema de Turnos -->
+            {% if turno_info %}
+                {% if turno_info.error_mensaje %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Fuera de Horario</strong>
+                        <p class="mb-0">{{ turno_info.error_mensaje }}</p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    </div>
+                {% elif turno_info.turno %}
+                    <div class="card mb-3 border-{% if turno_info.disponible %}success{% else %}danger{% endif %}">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h5 class="card-title mb-2">
+                                        <i class="bi bi-clock-fill text-{% if turno_info.turno == 'mañana' %}warning{% else %}primary{% endif %}"></i>
+                                        Turno Actual: <span class="badge bg-{% if turno_info.turno == 'mañana' %}warning{% else %}primary{% endif %}">{{ turno_info.turno|capitalize }}</span>
+                                    </h5>
+                                    <p class="card-text mb-1">
+                                        <strong>Consultas registradas:</strong> 
+                                        <span class="badge bg-{% if turno_info.consultas_actuales >= turno_info.limite %}danger{% elif turno_info.consultas_actuales >= turno_info.limite * 0.8 %}warning{% else %}success{% endif %} fs-6">
+                                            {{ turno_info.consultas_actuales }} / {{ turno_info.limite }}
+                                        </span>
+                                    </p>
+                                    {% if not turno_info.disponible %}
+                                        <p class="text-danger mb-0">
+                                            <i class="bi bi-x-circle-fill"></i> <strong>Límite alcanzado</strong> - No se pueden registrar más consultas en este turno
+                                        </p>
+                                    {% elif turno_info.consultas_actuales >= turno_info.limite * 0.8 %}
+                                                        <small class="form-text text-muted">
+                                                            Escribe el nombre o cédula y presiona <kbd>Enter</kbd> o haz clic en <strong>Buscar</strong>
+                                                        </small>
+                                    {% else %}
+                                        <p class="text-success mb-0">
+                                            <i class="bi bi-check-circle-fill"></i> Disponible para registro
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="display-4 text-{% if turno_info.disponible %}success{% else %}danger{% endif %}">
+                                        <i class="bi bi-{% if turno_info.disponible %}check-circle{% else %}x-circle{% endif %}-fill"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Formulario -->
+            <form method="POST" novalidate {% if turno_info and (turno_info.error_mensaje or not turno_info.disponible) %}onsubmit="return false;"{% endif %}>
+                {{ form.hidden_tag() }}
+                
+                <!-- Búsqueda de Paciente por Cédula (AJAX) -->
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <i class="bi bi-search"></i> Buscar Paciente
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="buscar-cedula" class="form-label">Nombre o Cédula del Paciente <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="buscar-cedula" 
+                                       placeholder="Nombre o Cédula: Ej: Juan Pérez o V12345678"
+                                       autocomplete="off"
+                                       {% if turno_info and (turno_info.error_mensaje or not turno_info.disponible) %}disabled{% endif %}>
+                                <small class="form-text text-muted">
+                                    Escribe el nombre o cédula y presiona <kbd>Enter</kbd> o haz clic en <strong>Buscar</strong>
+                                </small>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" 
+                                        class="btn btn-primary w-100" 
+                                        id="btn-buscar"
+                                        onclick="buscarPaciente()"
+                                        {% if turno_info and (turno_info.error_mensaje or not turno_info.disponible) %}disabled{% endif %}>
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Resultado de búsqueda -->
+                        <div id="resultado-busqueda" class="d-none"></div>
+                        
+                        <!-- Pacientes similares -->
+                        <div id="similares-busqueda" class="d-none"></div>
+                        
+                        <!-- Campo oculto para enviar paciente_id al backend -->
+                        {{ form.paciente_id(type='hidden', id='paciente_id_hidden') }}
+                        {% if form.paciente_id.errors %}
+                            <div class="alert alert-danger mt-2">
+                                {% for error in form.paciente_id.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> Seleccione el paciente para registrar la consulta
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <i class="bi bi-chat-left-text"></i> Motivo de Consulta
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            {{ form.motivo.label(class="form-label") }} <span class="text-danger">*</span>
+                            {{ form.motivo(class="form-control" + (" is-invalid" if form.motivo.errors else "")) }}
+                            {% if form.motivo.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.motivo.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <i class="bi bi-heart-pulse"></i> Signos Vitales
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                {{ form.temperatura.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.temperatura(class="form-control" + (" is-invalid" if form.temperatura.errors else ""), id="temperatura") }}
+                                    <span class="input-group-text">°C</span>
+                                </div>
+                                {% if form.temperatura.errors %}
+                                    <small class="text-danger">{% for error in form.temperatura.errors %}{{ error }}{% endfor %}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.presion_sistolica.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.presion_sistolica(class="form-control" + (" is-invalid" if form.presion_sistolica.errors else ""), id="presion_sistolica") }}
+                                    <span class="input-group-text">mmHg</span>
+                                </div>
+                                {% if form.presion_sistolica.errors %}
+                                    <small class="text-danger">{% for error in form.presion_sistolica.errors %}{{ error }}{% endfor %}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.presion_diastolica.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.presion_diastolica(class="form-control" + (" is-invalid" if form.presion_diastolica.errors else ""), id="presion_diastolica") }}
+                                    <span class="input-group-text">mmHg</span>
+                                </div>
+                                {% if form.presion_diastolica.errors %}
+                                    <small class="text-danger">{% for error in form.presion_diastolica.errors %}{{ error }}{% endfor %}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.frecuencia_cardiaca.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.frecuencia_cardiaca(class="form-control" + (" is-invalid" if form.frecuencia_cardiaca.errors else ""), id="frecuencia_cardiaca") }}
+                                    <span class="input-group-text">BPM</span>
+                                </div>
+                                {% if form.frecuencia_cardiaca.errors %}
+                                    <small class="text-danger">{% for error in form.frecuencia_cardiaca.errors %}{{ error }}{% endfor %}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Fila 2: Peso y Altura -->
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                {{ form.peso.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.peso(class="form-control" + (" is-invalid" if form.peso.errors else ""), id="peso") }}
+                                    <span class="input-group-text">kg</span>
+                                </div>
+                                {% if form.peso.errors %}
+                                    <small class="text-danger">{% for error in form.peso.errors %}{{ error }}{% endfor %}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.altura.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.altura(class="form-control" + (" is-invalid" if form.altura.errors else ""), id="altura") }}
+                                    <span class="input-group-text">cm</span>
+                                </div>
+                                {% if form.altura.errors %}
+                                    <small class="text-danger">{% for error in form.altura.errors %}{{ error }}{% endfor %}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- ALERTAS INTELIGENTES EN TIEMPO REAL -->
+                        <div id="alertas-vitales" class="mt-3" style="display: none;">
+                            <div class="alert alert-warning border-start border-5" role="alert">
+                                <h6 class="alert-heading">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> 
+                                    <strong>ALERTAS DETECTADAS - J&S Software Inteligentes</strong>
+                                </h6>
+                                <ul id="lista-alertas" class="mb-0 mt-2"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TODO MEJORAS: Diagnóstico y Tratamiento se completarán en el consultorio médico -->
+
+                <!-- Botones -->
+                <div class="d-flex justify-content-between mb-4">
+                    <a href="{{ url_for('consultas.index') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary" 
+                            {% if turno_info and (turno_info.error_mensaje or not turno_info.disponible) %}disabled{% endif %}>
+                        <i class="bi bi-save"></i> Guardar Consulta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para búsqueda AJAX de pacientes -->
+<script>
+// Búsqueda al presionar Enter
+document.addEventListener('DOMContentLoaded', function() {
+    var buscarCedula = document.getElementById('buscar-cedula');
+    if (buscarCedula) {
+        buscarCedula.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarPaciente();
+            }
+        });
+        // Debounce automático al escribir (800ms)
+        let timerDebounce = null;
+        buscarCedula.addEventListener('input', function() {
+            clearTimeout(timerDebounce);
+            const valor = this.value.trim();
+            if (valor.length >= 4) {
+                timerDebounce = setTimeout(() => {
+                    buscarPaciente();
+                }, 800);
+            } else if (valor.length === 0) {
+                // Limpiar resultados si borra todo
+                document.getElementById('resultado-busqueda').classList.add('d-none');
+                document.getElementById('similares-busqueda').classList.add('d-none');
+            }
+        });
+    }
+});
+
+function buscarPaciente() {
+    const cedula = document.getElementById('buscar-cedula').value.trim();
+    const resultadoDiv = document.getElementById('resultado-busqueda');
+    const similaresDiv = document.getElementById('similares-busqueda');
+    const btnBuscar = document.getElementById('btn-buscar');
+    
+    if (!cedula || cedula.length < 4) {
+        resultadoDiv.innerHTML = '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Ingresa al menos 4 dígitos de la cédula</div>';
+        resultadoDiv.classList.remove('d-none');
+        similaresDiv.classList.add('d-none');
+        return;
+    }
+    
+    // Mostrar loading
+    btnBuscar.disabled = true;
+    btnBuscar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Buscando...';
+    resultadoDiv.innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Buscando paciente...</div>';
+    resultadoDiv.classList.remove('d-none');
+    similaresDiv.classList.add('d-none');
+    
+    // AJAX request
+    fetch(`/api/pacientes/buscar?cedula=${encodeURIComponent(cedula)}`)
+        .then(response => response.json())
+        .then(data => {
+            // Restaurar botón
+            btnBuscar.disabled = false;
+            btnBuscar.innerHTML = '<i class="bi bi-search"></i> Buscar';
+            
+            if (!data.ok) {
+                resultadoDiv.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> ${data.error}</div>`;
+                return;
+            }
+            
+            if (data.found) {
+                // Paciente encontrado
+                const p = data.paciente;
+                let html = `
+                    <div class="alert alert-success">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="alert-heading"><i class="bi bi-check-circle-fill"></i> Paciente Seleccionado</h5>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="mostrarFormularioCompleto()">
+                                <i class="bi bi-arrow-down-circle"></i> Continuar con la consulta
+                            </button>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Nombre:</strong> ${p.nombre_completo}</p>
+                                <p class="mb-1"><strong>Cédula:</strong> ${p.cedula}</p>
+                                <p class="mb-1"><strong>Edad:</strong> ${p.edad} años</p>
+                                <p class="mb-1"><strong>Sexo:</strong> ${p.sexo}</p>
+                            </div>
+                            <div class="col-md-6">
+                                ${p.tipo_sangre ? `<p class="mb-1"><strong>Tipo de Sangre:</strong> <span class="badge bg-danger">${p.tipo_sangre}</span></p>` : ''}
+                                ${p.telefono ? `<p class="mb-1"><strong>Teléfono:</strong> ${p.telefono}</p>` : ''}
+                                ${p.alergias ? `<p class="mb-1"><strong>Alergias:</strong> <span class="text-danger">${p.alergias}</span></p>` : ''}
+                            </div>
+                        </div>
+                `;
+                
+                if (p.ultima_consulta) {
+                    html += `
+                        <hr>
+                        <small class="text-muted">
+                            <i class="bi bi-clock-history"></i> Última consulta: ${p.ultima_consulta.fecha} 
+                            (Turno ${p.ultima_consulta.turno})
+                        </small>
+                    `;
+                }
+                
+                html += '</div>';
+                resultadoDiv.innerHTML = html;
+                
+                // Setear ID oculto para enviar al backend
+                document.getElementById('paciente_id_hidden').value = p.id;
+                
+                // Hacer scroll suave al formulario de motivo
+                setTimeout(() => {
+                    const motivoCard = document.querySelector('.card.mb-3:nth-of-type(2)');
+                    if (motivoCard) {
+                        motivoCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // Agregar efecto visual
+                        motivoCard.style.boxShadow = '0 0 20px rgba(13, 110, 253, 0.5)';
+                        setTimeout(() => {
+                            motivoCard.style.boxShadow = '';
+                        }, 2000);
+                    }
+                }, 300);
+                
+                // Precargar peso/altura/sector si hay última consulta
+                if (p.ultima_consulta) {
+                    if (p.ultima_consulta.peso) {
+                        const pesoField = document.getElementById('peso');
+                        if (pesoField && !pesoField.value) {
+                            pesoField.value = p.ultima_consulta.peso;
+                        }
+                    }
+                    if (p.ultima_consulta.altura) {
+                        const alturaField = document.getElementById('altura');
+                        if (alturaField && !alturaField.value) {
+                            alturaField.value = p.ultima_consulta.altura;
+                        }
+                    }
+                    if (p.ultima_consulta.sector) {
+                        const sectorField = document.getElementById('sector');
+                        if (sectorField && !sectorField.value) {
+                            sectorField.value = p.ultima_consulta.sector;
+                        }
+                    }
+                }
+                
+            } else {
+                // No encontrado - mostrar mensaje claro y profesional
+                resultadoDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle"></i> Paciente no encontrado
+                        </h6>
+                        <p class="mb-2">
+                            No existe un paciente registrado con la cédula <strong>${cedula}</strong>
+                        </p>
+                        <hr>
+                        <p class="mb-0 small">
+                            <strong>Instrucciones:</strong><br>
+                            1. Registra al paciente en <a href="/pacientes/nuevo" target="_blank" class="alert-link fw-bold">Pacientes → Nuevo Paciente</a><br>
+                            2. Regresa a esta página<br>
+                            3. Busca nuevamente por su cédula
+                        </p>
+                    </div>
+                `;
+                
+                if (data.similares && data.similares.length > 0) {
+                    let html = '<div class="alert alert-info"><strong><i class="bi bi-info-circle"></i> ¿Buscabas a alguno de estos pacientes?</strong><ul class="mb-0 mt-2">';
+                    data.similares.forEach(s => {
+                        html += `
+                            <li class="mb-2">
+                                <strong>${s.cedula}</strong> - ${s.nombre_completo} (${s.edad} años) 
+                                <button type="button" 
+                                        class="btn btn-sm btn-success ms-2" 
+                                        onclick="seleccionarPaciente('${s.cedula}')">
+                                    <i class="bi bi-check-circle"></i> Usar este paciente
+                                </button>
+                            </li>
+                        `;
+                    });
+                    html += '</ul></div>';
+                    similaresDiv.innerHTML = html;
+                    similaresDiv.classList.remove('d-none');
+                } else {
+                    similaresDiv.classList.add('d-none');
+                }
+            }
+        })
+        .catch(error => {
+            btnBuscar.disabled = false;
+            btnBuscar.innerHTML = '<i class="bi bi-search"></i> Buscar';
+            resultadoDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-octagon"></i> Error: ${error.message}
+                </div>
+            `;
+        });
+}
+
+function seleccionarPaciente(cedula) {
+    document.getElementById('buscar-cedula').value = cedula;
+    buscarPaciente();
+}
+
+function mostrarFormularioCompleto() {
+    // Scroll al formulario de motivo de consulta
+    const motivoCard = document.querySelector('.card.mb-3:nth-of-type(2)');
+    if (motivoCard) {
+        motivoCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Enfocar el campo de motivo
+        setTimeout(() => {
+            const motivoField = document.getElementById('motivo');
+            if (motivoField) {
+                motivoField.focus();
+            }
+        }, 500);
+    }
+}
+
+// ============================================
+// SISTEMA INTELIGENTE DE ALERTAS EN TIEMPO REAL
+// J&S Software Inteligentes
+// ============================================
+function verificarAlertasVitales() {
+    console.log('🔍 Verificando alertas...');
+    
+    const temperatura = parseFloat(document.getElementById('temperatura').value);
+    const sistolica = parseFloat(document.getElementById('presion_sistolica').value);
+    const diastolica = parseFloat(document.getElementById('presion_diastolica').value);
+    const peso = parseFloat(document.getElementById('peso').value);
+    const altura = parseFloat(document.getElementById('altura').value);
+    
+    console.log('Valores:', {temperatura, sistolica, diastolica, peso, altura});
+    
+    const alertas = [];
+    
+    // 🌡️ ALERTA: Fiebre
+    if (temperatura && temperatura >= 38) {
+        alertas.push({
+            icono: '🌡️',
+            clase: 'text-danger',
+            mensaje: `<strong>FIEBRE DETECTADA:</strong> ${temperatura}°C (Normal: 36-37.5°C)`
+        });
+    }
+    
+    // ❤️ ALERTA: Hipertensión
+    if (sistolica && sistolica >= 140) {
+        alertas.push({
+            icono: '❤️',
+            clase: 'text-warning',
+            mensaje: `<strong>PRESIÓN SISTÓLICA ELEVADA:</strong> ${sistolica} mmHg (Normal: 90-120 mmHg)`
+        });
+    }
+    
+    if (diastolica && diastolica >= 90) {
+        alertas.push({
+            icono: '❤️',
+            clase: 'text-warning',
+            mensaje: `<strong>PRESIÓN DIASTÓLICA ELEVADA:</strong> ${diastolica} mmHg (Normal: 60-80 mmHg)`
+        });
+    }
+    
+    // ⚖️ ALERTA: IMC elevado
+    if (peso && altura && altura > 0) {
+        const alturaMts = altura / 100;
+        const imc = (peso / (alturaMts * alturaMts)).toFixed(1);
+        if (imc > 30) {
+            alertas.push({
+                icono: '⚖️',
+                clase: 'text-info',
+                mensaje: `<strong>IMC ELEVADO:</strong> ${imc} (Obesidad - Normal: 18.5-24.9)`
+            });
+        }
+    }
+    
+    // Mostrar u ocultar alertas
+    const divAlertas = document.getElementById('alertas-vitales');
+    const listaAlertas = document.getElementById('lista-alertas');
+    
+    console.log('Total de alertas:', alertas.length);
+    
+    if (alertas.length > 0) {
+        listaAlertas.innerHTML = alertas.map(a => 
+            `<li class="${a.clase}"><span style="font-size: 1.2em;">${a.icono}</span> ${a.mensaje}</li>`
+        ).join('');
+        divAlertas.style.display = 'block';
+        divAlertas.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        console.log('✅ Alertas mostradas');
+    } else {
+        divAlertas.style.display = 'none';
+        console.log('ℹ️ Sin alertas');
+    }
+}
+
+// Escuchar cambios en campos de signos vitales (ejecutar inmediatamente)
+(function() {
+    const camposVitales = ['temperatura', 'presion_sistolica', 'presion_diastolica', 'peso', 'altura'];
+    
+    // Esperar un momento para que el DOM esté listo
+    setTimeout(function() {
+        camposVitales.forEach(campo => {
+            const input = document.getElementById(campo);
+            if (input) {
+                input.addEventListener('input', verificarAlertasVitales);
+                input.addEventListener('change', verificarAlertasVitales);
+                input.addEventListener('blur', verificarAlertasVitales);
+            } else {
+                console.warn('Campo no encontrado:', campo);
+            }
+        });
+    }, 100);
+})();
+</script>
+
+{% endblock %}

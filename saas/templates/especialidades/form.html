@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ modo }} Especialidad{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-stethoscope"></i> {{ modo }} Especialidad</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.nombre_medico.label(class="form-label") }}
+                    {{ form.nombre_medico(class="form-control", placeholder="Ej: Dr. Juan Pérez") }}
+                    {% if form.nombre_medico.errors %}
+                        <div class="text-danger">{{ form.nombre_medico.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.especialidad.label(class="form-label") }}
+                    {{ form.especialidad(class="form-select") }}
+                    {% if form.especialidad.errors %}
+                        <div class="text-danger">{{ form.especialidad.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.telefono_contacto.label(class="form-label") }}
+                    {{ form.telefono_contacto(class="form-control", placeholder="Ej: 0424-123-4567") }}
+                    {% if form.telefono_contacto.errors %}
+                        <div class="text-danger">{{ form.telefono_contacto.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.turno.label(class="form-label") }}
+                    {{ form.turno(class="form-select") }}
+                    {% if form.turno.errors %}
+                        <div class="text-danger">{{ form.turno.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-check mb-4">
+                    {{ form.activo(class="form-check-input") }}
+                    {{ form.activo.label(class="form-check-label") }}
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> {{ form.submit.label.text }}
+                    </button>
+                    <a href="{{ url_for('especialidades.index') }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{# Macros para componentes reutilizables en todo el sistema #}
+
+{# Macro para paginación Bootstrap #}
+{% macro render_pagination(pagination, endpoint, extra_params={}) %}
+    {% if pagination.pages > 1 %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for(endpoint, page=pagination.prev_num, **extra_params) }}">Anterior</a>
+            </li>
+            {% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for(endpoint, page=p, **extra_params) }}">{{ p }}</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for(endpoint, page=pagination.next_num, **extra_params) }}">Siguiente</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+{% endmacro %}
+
+{# Macro para badge de estado de medicamentos #}
+{% macro badge_estado_medicamento(estado, stock_bajo=False) %}
+    {% if estado == 'vencido' %}
+        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Vencido</span>
+    {% elif estado == 'por_vencer' %}
+        <span class="badge bg-warning"><i class="bi bi-exclamation-triangle"></i> Por Vencer</span>
+    {% elif stock_bajo %}
+        <span class="badge bg-warning"><i class="bi bi-box"></i> Bajo Stock</span>
+    {% else %}
+        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Disponible</span>
+    {% endif %}
+{% endmacro %}
+
+{# Macro para mostrar alertas Bootstrap #}
+{% macro render_alert(tipo, mensaje) %}
+    <div class="alert alert-{{ tipo }}">
+        {{ mensaje }}
+    </div>
+{% endmacro %}

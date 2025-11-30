@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h2>{{ titulo }}</h2>
+    <form method="POST" class="mt-4">
+        {{ form.hidden_tag() }}
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-3">{{ form.nombre.label(class="form-label") }}{{ form.nombre(class="form-control") }}</div>
+                <div class="mb-3">{{ form.descripcion.label(class="form-label") }}{{ form.descripcion(class="form-control") }}</div>
+                <div class="form-check">{{ form.activo(class="form-check-input") }}{{ form.activo.label(class="form-check-label") }}</div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar</button>
+            <a href="{{ url_for('especialidades.index') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

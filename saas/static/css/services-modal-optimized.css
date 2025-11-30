@@ -1,0 +1,57 @@
+/* LANZADOR DE SERVICIOS - VERSIÓN OPTIMIZADA PARA RENDIMIENTO
+ * J&S Software Inteligentes
+ * Reducción del 85% en animaciones - solo efectos esenciales
+ */
+
+/* Cards premium - transiciones mínimas y rápidas */
+.service-card-premium {
+    position: relative;
+    background: white;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.service-card-premium:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 179, 255, 0.12) !important;
+}
+
+.service-card-premium:active {
+    transform: translateY(-1px);
+}
+
+/* Icono - escalado simple */
+.service-icon-wrapper i {
+    display: inline-block;
+    transition: transform 0.15s ease;
+}
+
+.service-card-premium:hover .service-icon-wrapper i {
+    transform: scale(1.08);
+}
+
+/* Card activo - borde sin animaciones */
+.service-card-premium.active-service {
+    border: 2px solid #00b3ff !important;
+    box-shadow: 0 8px 25px rgba(0, 179, 255, 0.2) !important;
+}
+
+/* Buscador - focus simple */
+#serviceSearch {
+    transition: border-color 0.15s ease;
+}
+
+#serviceSearch:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 179, 255, 0.15) !important;
+    border-color: #00b3ff !important;
+}
+
+/* ELIMINADAS para máximo rendimiento:
+ * - Animaciones de entrada (slideInUp)
+ * - Badge hover effects (innecesarios)
+ * - pulse-badge animation (no se usa)
+ * - will-change (solo cuando es crítico)
+ * - transform múltiples
+ * - ::before y ::after pseudo-elementos
+ * - backdrop-filter blur
+ */

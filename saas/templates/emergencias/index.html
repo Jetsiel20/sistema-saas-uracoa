@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Emergencias - Triage{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-hospital text-danger"></i> Cola de Emergencias</h2>
+            <p class="text-muted">Ordenado por prioridad (Nivel 1 = Crítico)</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('emergencias.crear') }}" class="btn btn-danger">
+                <i class="bi bi-plus-circle"></i> Nueva Emergencia
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <h5><i class="bi bi-list-ol"></i> Total</h5>
+                    <h2>{{ total }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <h5><i class="bi bi-hourglass-split"></i> En Triaje</h5>
+                    <h2>{{ en_triaje }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h5><i class="bi bi-activity"></i> En Atención</h5>
+                    <h2>{{ en_atencion }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Estado</label>
+                    <select name="estado" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        <option value="en_triaje" {% if estado_filtro == 'en_triaje' %}selected{% endif %}>En Triaje</option>
+                        <option value="en_atencion" {% if estado_filtro == 'en_atencion' %}selected{% endif %}>En Atención</option>
+                        <option value="derivado" {% if estado_filtro == 'derivado' %}selected{% endif %}>Derivado</option>
+                        <option value="alta" {% if estado_filtro == 'alta' %}selected{% endif %}>Alta</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Nivel de Triage</label>
+                    <select name="nivel" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        <option value="1" {% if nivel_filtro == 1 %}selected{% endif %}>🔴 Nivel 1 - Crítico</option>
+                        <option value="2" {% if nivel_filtro == 2 %}selected{% endif %}>🟠 Nivel 2 - Urgente</option>
+                        <option value="3" {% if nivel_filtro == 3 %}selected{% endif %}>🟡 Nivel 3 - Moderado</option>
+                        <option value="4" {% if nivel_filtro == 4 %}selected{% endif %}>🟢 Nivel 4 - Menor</option>
+                        <option value="5" {% if nivel_filtro == 5 %}selected{% endif %}>🔵 Nivel 5 - No Urgente</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <a href="{{ url_for('emergencias.index') }}" class="btn btn-secondary w-100">
+                        <i class="bi bi-x-circle"></i> Limpiar Filtros
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de emergencias -->
+    {% if emergencias %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Triage</th>
+                    <th>Paciente</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>Hora Ingreso</th>
+                    <th>Tiempo Espera</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in emergencias %}
+                <tr class="{% if e.triage_nivel == 1 %}table-danger{% elif e.triage_nivel == 2 %}table-warning{% endif %}">
+                    <td>
+                        <span class="badge bg-{{ e.color_triage }} fs-6">
+                            {{ e.triage_nivel }} - {{ e.nombre_triage }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if e.paciente %}
+                            <i class="bi bi-person-check"></i> {{ e.paciente.nombre_completo }}
+                        {% else %}
+                            <i class="bi bi-person-x text-muted"></i> <em>No identificado</em>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if e.tipo == 'accidente' %}
+                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                        {% elif e.tipo == 'cardiaca' %}
+                            <i class="bi bi-heartbeat text-danger"></i>
+                        {% elif e.tipo == 'respiratoria' %}
+                            <i class="bi bi-activity text-info"></i>
+                        {% else %}
+                            <i class="bi bi-question-circle"></i>
+                        {% endif %}
+                        {{ e.tipo|title }}
+                    </td>
+                    <td>{{ e.descripcion[:50] }}{% if e.descripcion|length > 50 %}...{% endif %}</td>
+                    <td>
+                        <small>{{ e.hora_ingreso.strftime('%H:%M') }}</small><br>
+                        <small class="text-muted">{{ e.hora_ingreso.strftime('%d/%m/%Y') }}</small>
+                    </td>
+                    <td>
+                        <span class="badge {% if e.tiempo_espera > 60 %}bg-danger{% elif e.tiempo_espera > 30 %}bg-warning{% else %}bg-success{% endif %}">
+                            {{ e.tiempo_espera }} min
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge {% if e.estado == 'en_triaje' %}bg-warning{% elif e.estado == 'en_atencion' %}bg-primary{% elif e.estado == 'alta' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ e.estado_traducido }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('emergencias.show', id=e.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No hay emergencias registradas con los filtros seleccionados.
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.badge.bg-yellow {
+    background-color: #ffc107 !important;
+    color: #000;
+}
+</style>
+{% endblock %}

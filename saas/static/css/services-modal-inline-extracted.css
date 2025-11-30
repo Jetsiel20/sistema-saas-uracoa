@@ -1,0 +1,46 @@
+/* Clases extraídas de estilos inline de base.html para el modal de servicios premium */
+.modal-content-premium {
+    border-radius: 20px;
+    overflow: hidden;
+}
+.modal-header-premium {
+    background: linear-gradient(135deg, #002855 0%, #0066cc 50%, #00b3ff 100%);
+    padding: 2rem;
+    color: white;
+}
+.service-search-premium {
+    border-radius: 15px;
+    padding-left: 3rem;
+    background: #f8f9fa;
+}
+.modal-body-premium {
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+}
+.service-card-premium-outer {
+    border-radius: 15px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    position: relative;
+}
+.service-icon-premium {
+    font-size: 3rem;
+    background: linear-gradient(135deg, #002855, #00b3ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.service-title-premium {
+    color: #002855;
+}
+.service-kbd-premium {
+    border-radius: 5px;
+    padding: 2px 6px;
+}
+.progress-premium {
+    height: 3px;
+    border-radius: 0;
+}
+.progress-bar-premium {
+    width: 100%;
+    background: linear-gradient(90deg, #002855, #00b3ff);
+}

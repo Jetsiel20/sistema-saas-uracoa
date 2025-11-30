@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-plus"></i> {{ titulo }}</h2>
+    <a href="{{ url_for('main.pacientes') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST" class="needs-validation" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <!-- Información Personal -->
+            <h5 class="text-primary mb-3"><i class="bi bi-person"></i> Información Personal</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.cedula.label(class="form-label") }}
+                    {{ form.cedula(class="form-control" + (" is-invalid" if form.cedula.errors else "")) }}
+                    {% if form.cedula.errors %}
+                        <div class="invalid-feedback">{{ form.cedula.errors[0] }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.nombre.label(class="form-label") }}
+                    {{ form.nombre(class="form-control" + (" is-invalid" if form.nombre.errors else "")) }}
+                    {% if form.nombre.errors %}
+                        <div class="invalid-feedback">{{ form.nombre.errors[0] }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.apellido.label(class="form-label") }}
+                    {{ form.apellido(class="form-control" + (" is-invalid" if form.apellido.errors else "")) }}
+                    {% if form.apellido.errors %}
+                        <div class="invalid-feedback">{{ form.apellido.errors[0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.fecha_nacimiento.label(class="form-label") }}
+                    {{ form.fecha_nacimiento(class="form-control" + (" is-invalid" if form.fecha_nacimiento.errors else ""), type="date") }}
+                    {% if form.fecha_nacimiento.errors %}
+                        <div class="invalid-feedback">{{ form.fecha_nacimiento.errors[0] }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.sexo.label(class="form-label") }}
+                    {{ form.sexo(class="form-select" + (" is-invalid" if form.sexo.errors else "")) }}
+                    {% if form.sexo.errors %}
+                        <div class="invalid-feedback">{{ form.sexo.errors[0] }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.medico_id.label(class="form-label") }}
+                    {{ form.medico_id(class="form-select") }}
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <!-- Información de Contacto -->
+            <h5 class="text-primary mb-3"><i class="bi bi-telephone"></i> Información de Contacto</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.telefono.label(class="form-label") }}
+                    {{ form.telefono(class="form-control", type="tel") }}
+                </div>
+                <div class="col-md-8 mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), type="email") }}
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback">{{ form.email.errors[0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    {{ form.direccion.label(class="form-label") }}
+                    {{ form.direccion(class="form-control", rows=2) }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.ciudad.label(class="form-label") }}
+                    {{ form.ciudad(class="form-control") }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.estado.label(class="form-label") }}
+                    {{ form.estado(class="form-control") }}
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <!-- Información Médica -->
+            <h5 class="text-primary mb-3"><i class="bi bi-heart-pulse"></i> Información Médica</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.tipo_sangre.label(class="form-label") }}
+                    {{ form.tipo_sangre(class="form-select") }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.alergias.label(class="form-label") }}
+                    {{ form.alergias(class="form-control", rows=3, placeholder="Ej: Penicilina, Polen, etc.") }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.condiciones_cronicas.label(class="form-label") }}
+                    {{ form.condiciones_cronicas(class="form-control", rows=3, placeholder="Ej: Diabetes, Hipertensión, etc.") }}
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <!-- Contacto de Emergencia -->
+            <h5 class="text-primary mb-3"><i class="bi bi-exclamation-triangle"></i> Contacto de Emergencia</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.contacto_emergencia_nombre.label(class="form-label") }}
+                    {{ form.contacto_emergencia_nombre(class="form-control") }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.contacto_emergencia_telefono.label(class="form-label") }}
+                    {{ form.contacto_emergencia_telefono(class="form-control", type="tel") }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.contacto_emergencia_relacion.label(class="form-label") }}
+                    {{ form.contacto_emergencia_relacion(class="form-control", placeholder="Ej: Madre, Esposo/a, etc.") }}
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('main.pacientes') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

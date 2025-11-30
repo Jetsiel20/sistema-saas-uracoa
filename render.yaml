@@ -1,0 +1,24 @@
+# Render Configuration
+# Deploy: https://render.com
+
+# Python runtime
+python_version: 3.11
+
+# Build command
+build_command: pip install -r requirements.txt && flask db upgrade
+
+# Start command (defined in Procfile)
+# web: gunicorn run:app
+
+# Environment variables required:
+# - FLASK_ENV=production
+# - SECRET_KEY=<generate-secure-key>
+# - DATABASE_URL=<postgresql-url-from-render>
+# - SECURITY_PASSWORD_SALT=<generate-secure-salt>
+
+# Optional environment variables:
+# - MAIL_SERVER=<smtp-server>
+# - MAIL_PORT=587
+# - MAIL_USE_TLS=True
+# - MAIL_USERNAME=<email>
+# - MAIL_PASSWORD=<password>

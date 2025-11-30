@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+    <div class="text-muted">
+        <i class="bi bi-clock"></i> {{ now().strftime('%d/%m/%Y %H:%M') }}
+    </div>
+</div>
+
+<!-- Tarjetas de Estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Pacientes</h6>
+                        <h2 class="mb-0">{{ total_pacientes }}</h2>
+                    </div>
+                    <div class="text-primary" style="font-size: 3rem;">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-success shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Citas Hoy</h6>
+                        <h2 class="mb-0">{{ citas_hoy }}</h2>
+                    </div>
+                    <div class="text-success" style="font-size: 3rem;">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-info shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Usuarios Activos</h6>
+                        <h2 class="mb-0">{{ total_usuarios }}</h2>
+                    </div>
+                    <div class="text-info" style="font-size: 3rem;">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_user.es_medico %}
+    <div class="col-md-3 mb-3">
+        <div class="card border-warning shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Mis Pacientes</h6>
+                        <h2 class="mb-0">{{ mis_pacientes }}</h2>
+                    </div>
+                    <div class="text-warning" style="font-size: 3rem;">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    <!-- Próximas Citas -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-calendar3"></i> Próximas Citas (7 días)</h5>
+            </div>
+            <div class="card-body">
+                {% if proximas_citas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha/Hora</th>
+                                <th>Paciente</th>
+                                <th>Médico</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cita in proximas_citas %}
+                            <tr>
+                                <td>
+                                    <i class="bi bi-clock"></i>
+                                    {{ cita.fecha_hora.strftime('%d/%m/%Y %H:%M') }}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('main.paciente_detalle', id=cita.paciente.id) }}">
+                                        {{ cita.paciente.nombre_completo }}
+                                    </a>
+                                </td>
+                                <td>{{ cita.medico.nombre_completo }}</td>
+                                <td>
+                                    {% if cita.estado == 'programada' %}
+                                        <span class="badge bg-primary">Programada</span>
+                                    {% elif cita.estado == 'confirmada' %}
+                                        <span class="badge bg-success">Confirmada</span>
+                                    {% elif cita.estado == 'en_curso' %}
+                                        <span class="badge bg-info">En Curso</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+                    <p class="mt-2">No hay citas programadas en los próximos 7 días</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('main.citas') }}" class="btn btn-sm btn-outline-primary">
+                    Ver todas las citas <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Medicamentos con Stock Bajo -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Stock Bajo</h5>
+            </div>
+            <div class="card-body">
+                {% if medicamentos_bajo_stock %}
+                <ul class="list-group list-group-flush">
+                    {% for med in medicamentos_bajo_stock %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>{{ med.nombre }}</strong><br>
+                            <small class="text-muted">{{ med.presentacion }}</small>
+                        </div>
+                        <span class="badge bg-danger rounded-pill">{{ med.cantidad_stock }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Stock en niveles normales</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('medicamentos.index') }}" class="btn btn-sm btn-outline-primary">
+                    Ver inventario <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Accesos Rápidos -->
+        <div class="card shadow mt-3">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Accesos Rápidos</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.pacientes') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-people"></i> Ver Pacientes
+                    </a>
+                    <a href="{{ url_for('main.citas') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-calendar-plus"></i> Nueva Cita
+                    </a>
+                    {% if current_user.es_admin %}
+                    <a href="{{ url_for('auth.registro') }}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-person-plus"></i> Nuevo Usuario
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

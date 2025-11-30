@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Personal de Enfermería{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between mb-4">
+        <h2><i class="bi bi-clipboard-heart"></i> Personal de Enfermería</h2>
+        <a href="{{ url_for('enfermeros.turnos') }}" class="btn btn-primary"><i class="bi bi-calendar3"></i> Gestionar Turnos</a>
+    </div>
+    {% if enfermeros %}
+    <div class="row">
+        {% for enf in enfermeros %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5>{{ enf.nombre_completo }}</h5>
+                    <p><strong>Usuario:</strong> {{ enf.username }}</p>
+                    <p><strong>Teléfono:</strong> {{ enf.telefono or 'N/A' }}</p>
+                    <p><strong>Email:</strong> {{ enf.email or 'N/A' }}</p>
+                    <span class="badge bg-success">Activo</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">No hay enfermeros registrados. <a href="{{ url_for('main.usuarios') }}">Crear usuarios con rol enfermera</a></div>
+    {% endif %}
+</div>
+{% endblock %}

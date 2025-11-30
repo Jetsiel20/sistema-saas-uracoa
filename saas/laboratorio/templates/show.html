@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Orden {{ orden.codigo_orden }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Orden {{ orden.codigo_orden }}</h2>
+        <div>
+            <a href="{{ url_for('laboratorio.editar', id=orden.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> Editar</a>
+            <button onclick="window.print()" class="btn btn-outline-secondary"><i class="bi bi-printer"></i> Imprimir</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white"><h5>Paciente</h5></div>
+                <div class="card-body">
+                    <p><strong>Nombre:</strong> {{ orden.paciente.nombre_completo }}</p>
+                    <p><strong>Cédula:</strong> {{ orden.paciente.cedula }}</p>
+                    <p><strong>Edad:</strong> {{ orden.paciente.edad }} años</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5>Estado</h5></div>
+                <div class="card-body">
+                    <p><strong>Estado:</strong> <span class="badge bg-{% if orden.estado == 'completada' %}success{% elif orden.estado == 'en_proceso' %}warning{% else %}secondary{% endif %}">{{ orden.estado.title() }}</span></p>
+                    {% if orden.urgente %}<p><span class="badge bg-danger">URGENTE</span></p>{% endif %}
+                    <p><strong>Fecha Orden:</strong> {{ orden.fecha_orden.strftime('%d/%m/%Y %H:%M') }}</p>
+                    {% if orden.fecha_resultado %}<p><strong>Fecha Resultado:</strong> {{ orden.fecha_resultado.strftime('%d/%m/%Y %H:%M') }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header"><h5>Exámenes Solicitados</h5></div>
+                <div class="card-body">
+                    <p><strong>Médico:</strong> {{ orden.medico.nombre_completo }}</p>
+                    <pre>{{ orden.examenes_solicitados }}</pre>
+                    {% if orden.indicaciones %}<p><strong>Indicaciones:</strong> {{ orden.indicaciones }}</p>{% endif %}
+                </div>
+            </div>
+            {% if orden.resultados %}
+            <div class="card">
+                <div class="card-header bg-success text-white"><h5>Resultados</h5></div>
+                <div class="card-body">
+                    {% for res in orden.resultados %}
+                    <div class="mb-3">
+                        <h6>{{ res.examen }}</h6>
+                        <p><strong>Resultado:</strong> {{ res.resultado }}</p>
+                        {% if res.valor_referencia %}<p><small><strong>Ref:</strong> {{ res.valor_referencia }}</small></p>{% endif %}
+                        {% if res.observaciones %}<p><small>{{ res.observaciones }}</small></p>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">Sin resultados disponibles aún</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

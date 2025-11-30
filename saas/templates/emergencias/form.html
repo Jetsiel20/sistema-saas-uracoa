@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-4">
+        <h2><i class="bi bi-hospital text-danger"></i> {{ titulo }}</h2>
+    </div>
+
+    <!-- Búsqueda de paciente si no viene por URL -->
+    {% if not paciente %}
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="bi bi-search"></i> Buscar Paciente</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Cédula del Paciente</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
+                        <input type="text" id="buscar_cedula" class="form-control" placeholder="V-12345678" autocomplete="off">
+                        <button class="btn btn-primary" type="button" onclick="buscarPaciente()">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                    <div id="resultado_busqueda" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Info del paciente -->
+    {% if paciente %}
+    <div class="alert alert-success border-success">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-person-check fs-3 me-3"></i>
+            <div>
+                <strong class="fs-5">{{ paciente.nombre_completo }}</strong><br>
+                <small>Cédula: {{ paciente.cedula }} | Edad: {{ paciente.edad }} años | Tipo Sangre: {{ paciente.tipo_sangre or 'N/A' }}</small>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="row">
+            <!-- Columna izquierda: Triage -->
+            <div class="col-lg-6">
+                <div class="card mb-3 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Triage de Emergencia</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Nivel de triage MUY VISIBLE -->
+                        <div class="mb-4">
+                            {{ form.nivel_triage.label(class="form-label fw-bold fs-5") }}
+                            {{ form.nivel_triage(class="form-select form-select-lg border-danger") }}
+                            <small class="text-muted">Seleccione el nivel de prioridad</small>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            {{ form.tipo_emergencia.label(class="form-label fw-bold") }}
+                            {{ form.tipo_emergencia(class="form-select") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.medio_llegada.label(class="form-label fw-bold") }}
+                            {{ form.medio_llegada(class="form-select") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.motivo_consulta.label(class="form-label fw-bold") }}
+                            {{ form.motivo_consulta(class="form-control" + (" is-invalid" if form.motivo_consulta.errors else ""), rows="3") }}
+                            {% if form.motivo_consulta.errors %}
+                                <div class="invalid-feedback">{{ form.motivo_consulta.errors[0] }}</div>
+                            {% endif %}
+                            <small class="text-muted">Describa brevemente la emergencia</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna derecha: Signos vitales -->
+            <div class="col-lg-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-heart-pulse"></i> Signos Vitales</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.temperatura.label(class="form-label fw-bold") }}
+                                <div class="input-group">
+                                    {{ form.temperatura(class="form-control form-control-lg") }}
+                                    <span class="input-group-text">°C</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form.frecuencia_cardiaca.label(class="form-label fw-bold") }}
+                                <div class="input-group">
+                                    {{ form.frecuencia_cardiaca(class="form-control form-control-lg") }}
+                                    <span class="input-group-text">BPM</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form.presion_sistolica.label(class="form-label fw-bold") }}
+                                <div class="input-group">
+                                    {{ form.presion_sistolica(class="form-control form-control-lg") }}
+                                    <span class="input-group-text">mmHg</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form.presion_diastolica.label(class="form-label fw-bold") }}
+                                <div class="input-group">
+                                    {{ form.presion_diastolica(class="form-control form-control-lg") }}
+                                    <span class="input-group-text">mmHg</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mb-0 mt-3">
+                            <small>
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Nota:</strong> Complete solo los signos vitales disponibles. El resto puede agregarse después.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('emergencias.index') }}" class="btn btn-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="bi bi-save"></i> Registrar Emergencia
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>Busque al paciente</strong> para continuar con el registro de emergencia.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function buscarPaciente() {
+    const cedula = document.getElementById('buscar_cedula').value.trim();
+    const resultado = document.getElementById('resultado_busqueda');
+    
+    if (!cedula || cedula.length < 4) {
+        resultado.innerHTML = '<div class="alert alert-warning">Ingrese al menos 4 dígitos</div>';
+        return;
+    }
+    
+    resultado.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Buscando...';
+    
+    fetch(`/api/pacientes/buscar?cedula=${cedula}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok && data.found) {
+                resultado.innerHTML = `
+                    <div class="alert alert-success">
+                        <strong>${data.paciente.nombre_completo}</strong><br>
+                        <small>Edad: ${data.paciente.edad} años</small><br>
+                        <a href="?paciente=${data.paciente.id}" class="btn btn-success btn-sm mt-2">
+                            <i class="bi bi-check-circle"></i> Continuar con este paciente
+                        </a>
+                    </div>
+                `;
+            } else {
+                resultado.innerHTML = '<div class="alert alert-danger">Paciente no encontrado. Verifique la cédula.</div>';
+            }
+        })
+        .catch(error => {
+            resultado.innerHTML = '<div class="alert alert-danger">Error al buscar. Intente nuevamente.</div>';
+        });
+}
+
+// Buscar al presionar Enter
+document.getElementById('buscar_cedula')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        buscarPaciente();
+    }
+});
+</script>
+{% endblock %}

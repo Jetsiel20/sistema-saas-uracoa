@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h2>{{ titulo }}</h2>
+    <div class="alert alert-info mb-4"><strong>Paciente:</strong> {{ paciente.nombre_completo }}</div>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="mb-3">{{ form.examenes_solicitados.label(class="form-label") }}{{ form.examenes_solicitados(class="form-control") }}</div>
+                <div class="mb-3">{{ form.indicaciones.label(class="form-label") }}{{ form.indicaciones(class="form-control") }}</div>
+                <div class="row">
+                    <div class="col-md-6"><div class="form-check">{{ form.urgente(class="form-check-input") }}{{ form.urgente.label(class="form-check-label") }}</div></div>
+                    <div class="col-md-6">{{ form.estado.label(class="form-label") }}{{ form.estado(class="form-select") }}</div>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar</button>
+        <a href="{{ url_for('laboratorio.index') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

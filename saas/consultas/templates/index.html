@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Consultas Médicas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-file-medical text-primary"></i> Consultas Médicas</h2>
+            <p class="text-muted mb-0">Gestión de consultas del día</p>
+        </div>
+        <a href="{{ url_for('consultas.crear') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Consulta
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('consultas.index') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label"><i class="bi bi-calendar3"></i> Fecha</label>
+                    <input type="date" name="fecha" class="form-control" 
+                           value="{{ filtros.fecha }}" onchange="this.form.submit()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><i class="bi bi-person"></i> Paciente</label>
+                    <input type="text" name="paciente" class="form-control" 
+                           placeholder="Nombre o Cédula" value="{{ filtros.paciente }}">
+                </div>
+                {% if current_user.es_admin %}
+                <div class="col-md-2">
+                    <label class="form-label"><i class="bi bi-person-badge"></i> Médico</label>
+                    <select name="medico" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        {% for medico in medicos %}
+                        <option value="{{ medico.id }}" {% if filtros.medico == medico.id %}selected{% endif %}>
+                            {{ medico.nombre_completo }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="col-md-2">
+                    <label class="form-label"><i class="bi bi-clock"></i> Turno</label>
+                    <select name="turno" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        <option value="mañana" {% if filtros.turno == 'mañana' %}selected{% endif %}>Mañana</option>
+                        <option value="tarde" {% if filtros.turno == 'tarde' %}selected{% endif %}>Tarde</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label"><i class="bi bi-flag"></i> Estado</label>
+                    <select name="estado" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        <option value="abierta" {% if filtros.estado == 'abierta' %}selected{% endif %}>Abiertas</option>
+                        <option value="cerrada" {% if filtros.estado == 'cerrada' %}selected{% endif %}>Cerradas</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                    <a href="{{ url_for('consultas.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Consultas -->
+    {% if consultas %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Turno #</th>
+                            <th>Fecha/Hora</th>
+                            <th>Paciente</th>
+                            <th>Médico</th>
+                            <th>Motivo</th>
+                            <th>Signos Vitales</th>
+                            <th>Estado</th>
+                            <th>Alertas</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for consulta in consultas %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-{% if consulta.turno == 'mañana' %}warning{% else %}primary{% endif %}">
+                                    {{ consulta.turno|capitalize }} #{{ consulta.numero_consulta }}
+                                </span>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ consulta.fecha_hora.strftime('%d/%m/%Y') }}<br>
+                                    {{ consulta.fecha_hora.strftime('%H:%M') }}
+                                </small>
+                            </td>
+                            <td>
+                                <strong>{{ consulta.paciente.nombre_completo }}</strong><br>
+                                <small class="text-muted">Cédula: {{ consulta.paciente.cedula }}</small>
+                            </td>
+                            <td>
+                                <small>{{ consulta.medico.nombre_completo }}</small>
+                            </td>
+                            <td>
+                                <small>{{ consulta.motivo[:50] }}{% if consulta.motivo|length > 50 %}...{% endif %}</small>
+                            </td>
+                            <td>
+                                <small>
+                                    {% if consulta.temperatura %}
+                                    <i class="bi bi-thermometer"></i> {{ consulta.temperatura }}°C<br>
+                                    {% endif %}
+                                    {% if consulta.presion_arterial %}
+                                    <i class="bi bi-heart-pulse"></i> {{ consulta.presion_arterial }}
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                {% if consulta.estado == 'abierta' %}
+                                <span class="badge bg-success">Abierta</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Cerrada</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if consulta.alerta_riesgo %}
+                                <span class="badge bg-danger" title="Alertas detectadas">
+                                    <i class="bi bi-exclamation-triangle"></i> {{ consulta.alertas_detalle|length }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-light text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('consultas.show', id=consulta.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Paginación">
+                <ul class="pagination justify-content-center mt-3">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('consultas.index', page=pagination.prev_num, **filtros) }}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('consultas.index', page=page_num, **filtros) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('consultas.index', page=pagination.next_num, **filtros) }}">
+                            Siguiente
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <i class="bi bi-file-medical text-muted" style="font-size: 4rem;"></i>
+        <h4 class="mt-3">No hay consultas registradas</h4>
+        <p class="text-muted">Comienza seleccionando un paciente y registrando una nueva consulta</p>
+        <a href="{{ url_for('main.pacientes') }}" class="btn btn-primary mt-2">
+            <i class="bi bi-plus-circle"></i> Ir a Pacientes
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

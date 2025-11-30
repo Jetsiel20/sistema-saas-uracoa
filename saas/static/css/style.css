@@ -1,0 +1,262 @@
+/* 
+ * Estilos personalizados - Hospital Tipo 1 Uracoa
+ * J&S Software Inteligentes
+ */
+
+/* ============================================================
+   J&S SOFTWARE INTELIGENTES - PALETA DE COLORES
+   ============================================================ */
+:root {
+    --primary-color: #002855;       /* Azul marino corporativo J&S */
+    --accent-color: #0d6efd;        /* Azul intermedio */
+    --light-accent: #00b3ff;        /* Celeste brillante */
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --text-color: #212529;
+    --bg-light: #f8f9fa;
+    --card-bg: rgba(255, 255, 255, 0.85);  /* Fondo translúcido */
+}
+
+body {
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    color: var(--text-color);
+}
+
+main {
+    flex: 1;
+}
+
+/* ============================================================
+   NOTA: Los estilos de login están en style-login.css
+   ============================================================ */
+
+/* Navbar personalizado */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    transition: color 0.3s;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #fff;
+}
+
+/* Navbar con color J&S */
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.navbar-dark {
+    background-color: var(--primary-color) !important;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card-header {
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+}
+
+/* Botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Tablas */
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Badges */
+.badge {
+    padding: 0.5em 0.8em;
+    font-weight: 500;
+}
+
+/* Formularios */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--light-accent);
+    box-shadow: 0 0 0 0.25rem rgba(0, 179, 255, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 1px solid #ced4da;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-control-lg {
+    height: 50px;
+    font-size: 1rem;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Login Page */
+.card.shadow-lg {
+    border-radius: 15px;
+}
+
+/* Botones con colores J&S */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--light-accent) !important;
+    border-color: var(--light-accent) !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+/* Dashboard Stats Cards */
+.card.border-primary { border-left: 4px solid var(--primary-color) !important; }
+.card.border-success { border-left: 4px solid var(--success-color) !important; }
+.card.border-info { border-left: 4px solid var(--info-color) !important; }
+.card.border-warning { border-left: 4px solid var(--warning-color) !important; }
+.card.border-danger { border-left: 4px solid var(--danger-color) !important; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Login responsive */
+    .login-card {
+        padding: 2rem;
+        border-radius: 15px;
+        margin: 1rem;
+    }
+    
+    .login-card h2 {
+        font-size: 1.4rem;
+    }
+    
+    .login-logo i {
+        font-size: 3rem;
+    }
+}
+
+/* Loading spinner */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Print styles */
+@media print {
+    .navbar, footer, .btn, .no-print {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+}

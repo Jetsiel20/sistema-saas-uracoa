@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Emergencia #{{ emergencia.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-hospital text-danger"></i> Emergencia #{{ emergencia.id }}</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('emergencias.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Nivel de Triage destacado -->
+    <div class="alert alert-{{ emergencia.color_triage }} d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+        <div>
+            <h4 class="alert-heading">{{ emergencia.nombre_triage }}</h4>
+            <p class="mb-0">Tiempo de espera: <strong>{{ emergencia.tiempo_espera }} minutos</strong></p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información del paciente -->
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person"></i> Información del Paciente
+                </div>
+                <div class="card-body">
+                    {% if emergencia.paciente %}
+                        <p><strong>Nombre:</strong> {{ emergencia.paciente.nombre_completo }}</p>
+                        <p><strong>Cédula:</strong> {{ emergencia.paciente.cedula }}</p>
+                        <p><strong>Edad:</strong> {{ emergencia.paciente.edad }} años</p>
+                        <p><strong>Sexo:</strong> {{ emergencia.paciente.sexo }}</p>
+                    {% else %}
+                        <p class="text-muted"><i class="bi bi-person-x"></i> Paciente no identificado</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de ingreso -->
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <i class="bi bi-clock-history"></i> Información de Ingreso
+                </div>
+                <div class="card-body">
+                    <p><strong>Hora Ingreso:</strong> {{ emergencia.hora_ingreso.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p><strong>Tipo:</strong> 
+                        {% if emergencia.tipo == 'accidente' %}
+                            <i class="bi bi-exclamation-triangle"></i>
+                        {% elif emergencia.tipo == 'cardiaca' %}
+                            <i class="bi bi-heartbeat"></i>
+                        {% elif emergencia.tipo == 'respiratoria' %}
+                            <i class="bi bi-activity"></i>
+                        {% endif %}
+                        {{ emergencia.tipo|title }}
+                    </p>
+                    <p><strong>Estado:</strong> 
+                        <span class="badge {% if emergencia.estado == 'en_triaje' %}bg-warning{% elif emergencia.estado == 'en_atencion' %}bg-primary{% elif emergencia.estado == 'alta' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ emergencia.estado_traducido }}
+                        </span>
+                    </p>
+                    {% if emergencia.medico %}
+                    <p><strong>Atendido por:</strong> Dr(a). {{ emergencia.medico.nombre_completo }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Descripción -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-file-text"></i> Descripción del Caso
+        </div>
+        <div class="card-body">
+            <p>{{ emergencia.descripcion }}</p>
+        </div>
+    </div>
+
+    <!-- Signos vitales -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-heart-pulse"></i> Signos Vitales
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% if emergencia.presion_arterial %}
+                <div class="col-md-3">
+                    <strong>Presión Arterial:</strong><br>
+                    {{ emergencia.presion_arterial }} mmHg
+                </div>
+                {% endif %}
+                {% if emergencia.frecuencia_cardiaca %}
+                <div class="col-md-3">
+                    <strong>Frecuencia Cardíaca:</strong><br>
+                    {{ emergencia.frecuencia_cardiaca }} BPM
+                </div>
+                {% endif %}
+                {% if emergencia.temperatura %}
+                <div class="col-md-3">
+                    <strong>Temperatura:</strong><br>
+                    {{ emergencia.temperatura }} °C
+                </div>
+                {% endif %}
+                {% if emergencia.saturacion %}
+                <div class="col-md-3">
+                    <strong>Saturación O₂:</strong><br>
+                    {{ emergencia.saturacion }}%
+                </div>
+                {% endif %}
+            </div>
+            {% if emergencia.glasgow %}
+            <div class="row mt-2">
+                <div class="col-md-3">
+                    <strong>Escala de Glasgow:</strong><br>
+                    <span class="badge {% if emergencia.glasgow <= 8 %}bg-danger{% elif emergencia.glasgow <= 12 %}bg-warning{% else %}bg-success{% endif %}">
+                        {{ emergencia.glasgow }}/15
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Diagnóstico y tratamiento -->
+    {% if emergencia.diagnostico_preliminar or emergencia.tratamiento %}
+    <div class="card mb-3">
+        <div class="card-header bg-info text-white">
+            <i class="bi bi-clipboard-pulse"></i> Evaluación Médica
+        </div>
+        <div class="card-body">
+            {% if emergencia.diagnostico_preliminar %}
+            <h6>Diagnóstico Preliminar:</h6>
+            <p>{{ emergencia.diagnostico_preliminar }}</p>
+            {% endif %}
+            
+            {% if emergencia.tratamiento %}
+            <h6>Tratamiento:</h6>
+            <p style="white-space: pre-line;">{{ emergencia.tratamiento }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Observaciones -->
+    {% if emergencia.observaciones %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-chat-left-text"></i> Observaciones
+        </div>
+        <div class="card-body">
+            <p style="white-space: pre-line;">{{ emergencia.observaciones }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Cambiar estado -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <i class="bi bi-arrow-repeat"></i> Cambiar Estado
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('emergencias.cambiar_estado', id=emergencia.id) }}">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Nuevo Estado</label>
+                        <select name="estado" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            <option value="en_triaje" {% if emergencia.estado == 'en_triaje' %}selected{% endif %}>En Triaje</option>
+                            <option value="en_atencion" {% if emergencia.estado == 'en_atencion' %}selected{% endif %}>En Atención</option>
+                            <option value="derivado">Derivado</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tratamiento Realizado</label>
+                    <textarea name="tratamiento" class="form-control" rows="3" placeholder="Describa el tratamiento aplicado..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Observaciones</label>
+                    <textarea name="observaciones" class="form-control" rows="2" placeholder="Observaciones adicionales..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Actualizar Estado
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

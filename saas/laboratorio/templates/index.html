@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Laboratorio{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between mb-4">
+        <h2><i class="bi bi-file-earmark-medical"></i> Órdenes de Laboratorio</h2>
+        <a href="{{ url_for('main.pacientes') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Nueva Orden</a>
+    </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="btn-group">
+                <a href="{{ url_for('laboratorio.index', estado='pendiente') }}" class="btn btn-{% if estado_filtro == 'pendiente' %}primary{% else %}outline-primary{% endif %}">Pendientes</a>
+                <a href="{{ url_for('laboratorio.index', estado='en_proceso') }}" class="btn btn-{% if estado_filtro == 'en_proceso' %}primary{% else %}outline-primary{% endif %}">En Proceso</a>
+                <a href="{{ url_for('laboratorio.index', estado='completada') }}" class="btn btn-{% if estado_filtro == 'completada' %}primary{% else %}outline-primary{% endif %}">Completadas</a>
+                <a href="{{ url_for('laboratorio.index', estado='todas') }}" class="btn btn-{% if estado_filtro == 'todas' %}primary{% else %}outline-primary{% endif %}">Todas</a>
+            </div>
+        </div>
+    </div>
+    {% if ordenes %}
+    <div class="card">
+        <div class="card-body">
+            <table class="table">
+                <thead><tr><th>Código</th><th>Paciente</th><th>Médico</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    {% for orden in ordenes %}
+                    <tr class="{% if orden.urgente %}table-danger{% endif %}">
+                        <td><strong>{{ orden.codigo_orden }}</strong>{% if orden.urgente %} <span class="badge bg-danger">URGENTE</span>{% endif %}</td>
+                        <td>{{ orden.paciente.nombre_completo }}</td>
+                        <td>{{ orden.medico.nombre_completo }}</td>
+                        <td>{{ orden.fecha_orden.strftime('%d/%m/%Y') }}</td>
+                        <td><span class="badge bg-{% if orden.estado == 'completada' %}success{% elif orden.estado == 'en_proceso' %}warning{% else %}secondary{% endif %}">{{ orden.estado.title() }}</span></td>
+                        <td>
+                            <a href="{{ url_for('laboratorio.show', id=orden.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                            <a href="{{ url_for('laboratorio.editar', id=orden.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No hay órdenes registradas</div>
+    {% endif %}
+</div>
+{% endblock %}

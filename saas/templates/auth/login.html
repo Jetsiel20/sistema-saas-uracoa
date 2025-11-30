@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Iniciar Sesión - {{ app_name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style-login.css') }}">
+{% endblock %}
+{% block content %}
+<body class="login-page">
+    
+    <!-- Flash Messages (posicionados arriba) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-lg" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Contenedor principal con fondo médico -->
+    <div class="login-wrapper">
+        <div class="login-card-container">
+            <div class="login-card">
+                
+                <!-- Logo corporativo -->
+                <div class="login-logo">
+                    <!-- Si tienes el logo, descomenta la siguiente línea -->
+                    <!-- <img src="{{ url_for('static', filename='img/logo-js.png') }}" alt="J&S Software Inteligentes"> -->
+                    <i class="bi bi-hospital-fill"></i>
+                </div>
+
+                <!-- Títulos -->
+                <h1 class="login-title">Hospital Uracoa</h1>
+                <p class="login-subtitle">Sistema SaaS Hospitalario Profesional</p>
+
+                <!-- Formulario de inicio de sesión -->
+                <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Campo Usuario -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="bi bi-person-fill me-1"></i>Usuario
+                        </label>
+                        {{ form.username(
+                            class="form-control" + (" is-invalid" if form.username.errors else ""),
+                            id="username",
+                            placeholder="uracoa2025.com",
+                            autocomplete="username"
+                        ) }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Campo Contraseña -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock-fill me-1"></i>Contraseña
+                        </label>
+                        <div class="input-group">
+                            {{ form.password(
+                                class="form-control" + (" is-invalid" if form.password.errors else ""),
+                                id="password",
+                                placeholder="Uracoa245@",
+                                autocomplete="current-password"
+                            ) }}
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye-fill" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Checkbox Recordarme -->
+                    <div class="mb-3 form-check">
+                        {{ form.remember_me(class="form-check-input", id="remember") }}
+                        <label class="form-check-label" for="remember">
+                            Recordarme en este dispositivo
+                        </label>
+                    </div>
+
+                    <!-- Botón de inicio de sesión -->
+                    <button type="submit" class="btn btn-login">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Iniciar Sesión</span>
+                    </button>
+                </form>
+
+                <!-- Mensaje de seguridad -->
+                <div class="login-security">
+                    <i class="bi bi-shield-check-fill"></i>
+                    Acceso seguro y encriptado
+                </div>
+
+                <!-- Footer corporativo -->
+                <div class="login-footer">
+                    <i class="bi bi-code-square"></i>
+                    Desarrollado por J&S Software Inteligentes
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-dismiss flash messages -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-dismiss alerts
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+
+            // Toggle password visibility
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordField = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            if (togglePassword) {
+                togglePassword.addEventListener('click', function() {
+                    // Toggle the type attribute
+                    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordField.setAttribute('type', type);
+                    
+                    // Toggle the icon
+                    if (type === 'password') {
+                        toggleIcon.classList.remove('bi-eye-slash-fill');
+                        toggleIcon.classList.add('bi-eye-fill');
+                    } else {
+                        toggleIcon.classList.remove('bi-eye-fill');
+                        toggleIcon.classList.add('bi-eye-slash-fill');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+{% endblock %}

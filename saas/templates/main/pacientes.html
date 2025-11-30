@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% import '_macros.html' as macros %}
+{% block title %}Pacientes - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people"></i> Pacientes</h2>
+    <a href="{{ url_for('main.paciente_nuevo') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus"></i> Nuevo Paciente
+    </a>
+</div>
+
+<!-- Búsqueda -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('main.pacientes') }}" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Buscar por nombre, apellido o cédula..." 
+                       value="{{ search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Pacientes -->
+<div class="card shadow">
+    <div class="card-body">
+        {% if pacientes.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Cédula</th>
+                        <th>Nombre Completo</th>
+                        <th>Edad</th>
+                        <th>Teléfono</th>
+                        <th>Médico Tratante</th>
+                        <th>Última Consulta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for paciente in pacientes.items %}
+                    <tr>
+                        <td>{{ paciente.cedula }}</td>
+                        <td>
+                            <strong>{{ paciente.nombre_completo }}</strong><br>
+                            <small class="text-muted">{{ paciente.email or 'Sin email' }}</small>
+                        </td>
+                        <td>{{ paciente.edad }} años</td>
+                        <td>{{ paciente.telefono or '-' }}</td>
+                        <td>
+                            {% if paciente.medico_tratante %}
+                                {{ paciente.medico_tratante.nombre_completo }}
+                            {% else %}
+                                <span class="text-muted">Sin asignar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if paciente.ultima_consulta %}
+                                {{ paciente.ultima_consulta.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                <span class="text-muted">Nunca</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('main.paciente_detalle', id=paciente.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('main.paciente_editar', id=paciente.id) }}" 
+                                   class="btn btn-sm btn-outline-warning" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if current_user.es_admin %}
+                                <form method="POST" action="{{ url_for('main.paciente_eliminar', id=paciente.id) }}" 
+                                      style="display: inline;" onsubmit="return confirm('¿Estás seguro de desactivar este paciente?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Desactivar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {{ macros.render_pagination(pacientes, 'main.pacientes', {'search': search}) }}
+        
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem;"></i>
+            <p class="mt-3">No se encontraron pacientes</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

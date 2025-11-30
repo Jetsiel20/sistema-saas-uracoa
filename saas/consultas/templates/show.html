@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Consulta #{{ consulta.numero_consulta }} - Turno {{ consulta.turno|capitalize }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>
+                <i class="bi bi-file-medical text-primary"></i> 
+                Consulta #{{ consulta.numero_consulta }} 
+                <span class="badge bg-{% if consulta.turno == 'mañana' %}warning{% else %}primary{% endif %}">
+                    Turno {{ consulta.turno|capitalize }}
+                </span>
+            </h2>
+            <p class="text-muted mb-0">
+                {{ consulta.fecha_hora.strftime('%d de %B de %Y a las %H:%M') }}
+            </p>
+        </div>
+        <div>
+            {% if consulta.estado == 'abierta' %}
+            <form method="POST" action="{{ url_for('consultas.cerrar', id=consulta.id) }}" class="d-inline">
+                <button type="submit" class="btn btn-success" onclick="return confirm('¿Cerrar esta consulta?')">
+                    <i class="bi bi-check-circle"></i> Cerrar Consulta
+                </button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('consultas.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna Izquierda -->
+        <div class="col-md-8">
+            <!-- Información del Paciente -->
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person-circle"></i> Información del Paciente
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nombre:</strong> {{ consulta.paciente.nombre_completo }}</p>
+                            <p><strong>Cédula:</strong> {{ consulta.paciente.cedula }}</p>
+                            <p><strong>Edad:</strong> {{ consulta.paciente.edad }} años</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Médico:</strong> {{ consulta.medico.nombre_completo }}</p>
+                            <p><strong>Estado:</strong> 
+                                {% if consulta.estado == 'abierta' %}
+                                <span class="badge bg-success">Abierta</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Cerrada</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Sector:</strong> {{ consulta.sector or 'No especificado' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Motivo de Consulta -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="bi bi-chat-left-text"></i> Motivo de Consulta
+                </div>
+                <div class="card-body">
+                    <p>{{ consulta.motivo }}</p>
+                </div>
+            </div>
+
+            <!-- Signos Vitales -->
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-heart-pulse"></i> Signos Vitales
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% if consulta.temperatura %}
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 text-center {% if consulta.temperatura > 38.0 %}bg-danger bg-opacity-10 border-danger{% endif %}">
+                                <i class="bi bi-thermometer fs-2 {% if consulta.temperatura > 38.0 %}text-danger{% else %}text-primary{% endif %}"></i>
+                                <p class="mb-0 mt-2"><strong>Temperatura</strong></p>
+                                <h4 class="mb-0 {% if consulta.temperatura > 38.0 %}text-danger{% endif %}">{{ consulta.temperatura }}°C</h4>
+                                {% if consulta.temperatura > 38.0 %}
+                                <small class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Fiebre</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if consulta.presion_arterial %}
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 text-center {% if consulta.presion_sistolica and consulta.presion_sistolica >= 140 %}bg-danger bg-opacity-10 border-danger{% endif %}">
+                                <i class="bi bi-heart-pulse fs-2 {% if consulta.presion_sistolica and consulta.presion_sistolica >= 140 %}text-danger{% else %}text-primary{% endif %}"></i>
+                                <p class="mb-0 mt-2"><strong>Presión Arterial</strong></p>
+                                <h4 class="mb-0 {% if consulta.presion_sistolica and consulta.presion_sistolica >= 140 %}text-danger{% endif %}">{{ consulta.presion_arterial }}</h4>
+                                {% if consulta.presion_sistolica and consulta.presion_sistolica >= 140 %}
+                                <small class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Hipertensión</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if consulta.frecuencia_cardiaca %}
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 text-center">
+                                <i class="bi bi-heart fs-2 text-danger"></i>
+                                <p class="mb-0 mt-2"><strong>Frecuencia Cardíaca</strong></p>
+                                <h4 class="mb-0">{{ consulta.frecuencia_cardiaca }} BPM</h4>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if consulta.peso %}
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 text-center">
+                                <i class="bi bi-person fs-2 text-secondary"></i>
+                                <p class="mb-0 mt-2"><strong>Peso</strong></p>
+                                <h4 class="mb-0">{{ consulta.peso }} kg</h4>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if consulta.altura %}
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 text-center">
+                                <i class="bi bi-rulers fs-2 text-secondary"></i>
+                                <p class="mb-0 mt-2"><strong>Altura</strong></p>
+                                <h4 class="mb-0">{{ consulta.altura }} cm</h4>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if consulta.imc %}
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 text-center {% if consulta.imc > 30 %}bg-warning bg-opacity-25 border-warning{% endif %}">
+                                <i class="bi bi-calculator fs-2 {% if consulta.imc > 30 %}text-warning{% else %}text-secondary{% endif %}"></i>
+                                <p class="mb-0 mt-2"><strong>IMC</strong></p>
+                                <h4 class="mb-0 {% if consulta.imc > 30 %}text-warning{% endif %}">{{ consulta.imc }}</h4>
+                                <small class="{% if consulta.imc > 30 %}text-warning{% else %}text-muted{% endif %}">
+                                    {{ consulta.clasificacion_imc }}
+                                    {% if consulta.imc > 30 %}<i class="bi bi-exclamation-triangle-fill"></i>{% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contexto Rural -->
+            {% if consulta.sector or consulta.nivel_conciencia %}
+            <div class="card mb-3">
+                <div class="card-header bg-danger text-white">
+                    <i class="bi bi-exclamation-triangle"></i> Alertas Detectadas
+                </div>
+                <div class="card-body">
+                    {% for alerta in consulta.alertas_detalle %}
+                    <div class="alert alert-{{ alerta.clase }} mb-2 py-2">
+                        <i class="bi bi-{{ alerta.icono }}"></i>
+                        <strong>{{ alerta.mensaje }}</strong>
+                    </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    <h6 class="text-danger"><i class="bi bi-clipboard-check"></i> Recomendaciones:</h6>
+                    <ul class="small mb-0">
+                        {% if consulta.temperatura and consulta.temperatura >= 38 %}
+                        <li>Monitorear temperatura cada 4 horas</li>
+                        <li>Hidratar al paciente adecuadamente</li>
+                        {% endif %}
+                        {% if consulta.presion_sistolica and consulta.presion_sistolica >= 140 %}
+                        <li>Control de presión arterial en 24-48 horas</li>
+                        <li>Evaluar tratamiento antihipertensivo</li>
+                        {% endif %}
+                        {% if consulta.imc and consulta.imc > 30 %}
+                        <li>Referir a nutricionista</li>
+                        <li>Iniciar plan de actividad física</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> <strong>Sin alertas</strong><br>
+                <small>Signos vitales dentro de parámetros normales</small>
+            </div>
+            {% endif %}
+
+            <!-- Acciones Rápidas -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning"></i> Acciones Rápidas
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('main.pacientes') }}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-person-lines-fill"></i> Ver Historia del Paciente
+                    </a>
+                    <a href="{{ url_for('consultas.crear') }}?paciente={{ consulta.paciente_id }}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-plus-circle"></i> Nueva Consulta para este Paciente
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bi bi-printer"></i> Imprimir Consulta
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

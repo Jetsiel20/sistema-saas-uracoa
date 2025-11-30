@@ -1,0 +1,124 @@
+﻿{% extends "base.html" %}
+{% block title %}Registro de Doctor - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-5 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-person-plus"></i> Nuevo Doctor</h4>
+            </div>
+            <div class="card-body">
+                <!-- Mostrar errores si existen -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" action="{{ url_for('auth.registro') }}" id="formRegistro">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        {{ form.nombre(class="form-control", placeholder="Nombre", required=true) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Apellido</label>
+                        {{ form.apellido(class="form-control", placeholder="Apellido", required=true) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.cedula.label(class="form-label") }}
+                        {{ form.cedula(class="form-control", placeholder="V-12345678", required=true) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Especialidad</label>
+                        {{ form.especialidad(class="form-control", placeholder="Ej: Cardiólogo, Pediatra") }}
+                    </div>
+                    
+                    <!-- Campos ocultos - serán llenados por JavaScript -->
+                    {{ form.username(type="hidden", id="field_username") }}
+                    {{ form.email(type="hidden", id="field_email") }}
+                    {{ form.password(type="hidden", id="field_password", value="Doc2025!") }}
+                    {{ form.password2(type="hidden", id="field_password2", value="Doc2025!") }}
+                    {{ form.telefono(type="hidden", id="field_telefono", value="0000-0000000") }}
+                    {{ form.rol(type="hidden", id="field_rol") }}
+                    {{ form.codigo_profesional(type="hidden", id="field_codigo") }}
+                    
+                    <div class="alert alert-info small mt-3">
+                        <i class="bi bi-info-circle"></i> 
+                        La contraseña será: <code>Doc2025!</code>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="button" id="btnRegistrar" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save"></i> Registrar Doctor
+                        </button>
+                        <a href="{{ url_for('main.usuarios') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Pre-llenar campos ocultos INMEDIATAMENTE
+    const fieldPassword = document.getElementById('field_password');
+    const fieldPassword2 = document.getElementById('field_password2');
+    const fieldRol = document.getElementById('field_rol');
+    const fieldTelefono = document.getElementById('field_telefono');
+    
+    if (fieldPassword) fieldPassword.value = 'Doc2025!';
+    if (fieldPassword2) fieldPassword2.value = 'Doc2025!';
+    if (fieldRol) fieldRol.value = 'medico';
+    if (fieldTelefono) fieldTelefono.value = '0000-0000000';
+    
+    document.getElementById('btnRegistrar').addEventListener('click', function() {
+        const form = document.getElementById('formRegistro');
+        const nombre = document.querySelector('input[name="nombre"]').value.trim();
+        const apellido = document.querySelector('input[name="apellido"]').value.trim();
+        const cedula = document.querySelector('input[name="cedula"]').value.replace(/[^0-9]/g, '');
+        
+        // Validar
+        if (!nombre || !apellido || !cedula || cedula.length < 6) {
+            alert('Complete: Nombre, Apellido y Cédula (mínimo 6 dígitos)');
+            return;
+        }
+        
+        // Generar username y email
+        const cedula4 = cedula.slice(-4);
+        const username = (nombre.substring(0,1) + apellido + cedula4).toLowerCase().replace(/\s/g, '');
+        
+        document.getElementById('field_username').value = username;
+        document.getElementById('field_email').value = username + '@hospital.com';
+        document.getElementById('field_codigo').value = 'MP-' + cedula;
+        
+        // VERIFICAR que password esté lleno
+        if (!fieldPassword.value) fieldPassword.value = 'Doc2025!';
+        if (!fieldPassword2.value) fieldPassword2.value = 'Doc2025!';
+        
+        console.log('Enviando:', {
+            nombre: nombre,
+            apellido: apellido,
+            cedula: cedula,
+            username: username,
+            email: username + '@hospital.com',
+            password: '***',
+            rol: fieldRol.value
+        });
+        
+        // Enviar form
+        form.submit();
+    });
+});
+</script>
+{% endblock %}
