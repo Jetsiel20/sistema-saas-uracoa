@@ -3,7 +3,7 @@ from saas.extensions import db
 from saas.models import Usuario
 from datetime import datetime
 
-app = create_app('development')
+app = create_app('production')
 
 with app.app_context():
     admin = Usuario.query.filter_by(username="uracoa2025.com").first()
