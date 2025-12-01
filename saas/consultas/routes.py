@@ -24,43 +24,48 @@ def registrar_consulta():
 
     consultas_hoy = obtener_consultas_hoy()
 
-    if form.validate_on_submit():
-        paciente = Paciente.query.get(form.paciente_id.data)
 
-        if not paciente:
-            flash("Paciente no válido", "danger")
-            return render_template(
-                'consultas_form.html',
-                form=form,
-                consultas_hoy=consultas_hoy
+    if form.validate_on_submit():
+        try:
+            paciente = Paciente.query.get(form.paciente_id.data)
+
+            if not paciente:
+                flash("Paciente no válido", "danger")
+                return render_template(
+                    'consultas_form.html',
+                    form=form,
+                    consultas_hoy=consultas_hoy
+                )
+
+            consulta = Consulta(
+                paciente_id=paciente.id,
+                medico_id=current_user.id,
+                fecha_hora=datetime.utcnow(),
+                motivo=form.motivo.data,
+                temperatura=form.temperatura.data,
+                presion_sistolica=form.presion_sistolica.data,
+                presion_diastolica=form.presion_diastolica.data,
+                frecuencia_cardiaca=form.frecuencia_cardiaca.data,
+                peso=form.peso.data,
+                altura=form.altura.data,
+                turno=form.turno.data,
+                estado=form.estado.data
             )
 
-        consulta = Consulta(
-            paciente_id=paciente.id,
-            medico_id=current_user.id,
-            fecha_hora=datetime.utcnow(),
-            motivo=form.motivo.data,
-            temperatura=form.temperatura.data,
-            presion_sistolica=form.presion_sistolica.data,
-            presion_diastolica=form.presion_diastolica.data,
-            frecuencia_cardiaca=form.frecuencia_cardiaca.data,
-            peso=form.peso.data,
-            altura=form.altura.data,
-            turno=form.turno.data,
-            estado=form.estado.data
-        )
+            # Lógica existente del sistema
+            consulta.asignar_turno_y_numero()
+            consulta.validar_antes_guardar()
 
-        # Lógica existente del sistema
-        consulta.asignar_turno_y_numero()
-        consulta.validar_antes_guardar()
+            db.session.add(consulta)
+            db.session.commit()
 
-        db.session.add(consulta)
-        db.session.commit()
+            flash("✅ Consulta registrada correctamente", "success")
 
-        flash("✅ Consulta registrada correctamente", "success")
-
-        # Volver a cargar la lista de consultas del día
-        consultas_hoy = obtener_consultas_hoy()
+            # Volver a cargar la lista de consultas del día
+            consultas_hoy = obtener_consultas_hoy()
+        except Exception as e:
+            db.session.rollback()
+            flash(f"❌ Error al registrar consulta: {str(e)}", "danger")
 
     return render_template(
         'consultas_form.html',
